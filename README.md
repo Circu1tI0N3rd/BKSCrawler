@@ -45,6 +45,9 @@ Exceptions:
 ## License
 This library has a GNU GPLv3 license
 
+## Future
+- Use hashing with key for password instead of plain text when inputing to funtion (Currently not supported).
+
 ## FAQ
 -	**Q:** **_Can I use non-HCMUT account with this library?_**
 

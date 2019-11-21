@@ -45,6 +45,9 @@ Lỗi khi chạy:
 ## Bản quyền
 Thư viện này sử dụng GNU GPLv3.
 
+## Tương lai
+- Sử dụng hashing với khoá cho mật khẩu thay vì nhập mật khẩu trực tiếp vào function (hiện tại chưa hỗ trợ).
+
 ## FAQ
 -	**Q:** **_Tôi có thể sử dụng tài khoản không phải của MyBK?_**
 
