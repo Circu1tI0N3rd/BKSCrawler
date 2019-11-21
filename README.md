@@ -20,7 +20,10 @@ The credential information above must be able to access [HCMUT MyBK Portal](http
 - Letting others the possiblity to propagates the tables for their tastes.
 
 ## Basic usage
-Assuming you are in Python 3.7 shell,
+Assuming you are in Python 3.7 shell and already install all requirements:
+
+	python3 pip install requests html2json
+
 ### Input:
 
     >>> from BKSCrawler import get_timetable

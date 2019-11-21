@@ -7,5 +7,6 @@ setup(name = 'BKSCrawler',
 	author_email = 'brainstormingeveryday@gmail.com',
 	description = 'A Python library that crawls JSON-formatted timetable from HCMUT StInfo Portal',
 	packages = find_packages(exclude=['tests']),
+	install_requires = open('requirements.txt').read().split('\n'),
 	long_description = open('README.md').read(),
 	zip_safe = False)
