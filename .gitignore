@@ -1,3 +1,4 @@
 /dist/*
 /BKSCrawler.egg-info/*
 auto_pack.command
+.DS_Store
