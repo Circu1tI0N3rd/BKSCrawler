@@ -51,7 +51,7 @@ This library has a GNU GPLv3 license
 	**A:** **No**. As stated above, you can only use account that can access HCMUT MyBK Portal.
 -	**Q:** **_How does this library works?_**
 
-	**A:** This library uses _requests_ to mimic the behavior when doing the same thing from the browser. The html2json parses html respond to JSON to get key component for the success of this crawling proccess.
+	**A:** This library uses _requests_ to mimic the behavior when doing the same thing from the browser. The _html2json_ is used during the request to parse html respond in order to get key component for the success of this crawling proccess.
 -	**Q:** **_Why don't you use BeautifulSoup?_**
 
 	**A:** **_BeautifulSoup was obsoleted as from Python 3.2!_** That's why I uses html2json for parsing html output from the request. _(proof: Google it)_
