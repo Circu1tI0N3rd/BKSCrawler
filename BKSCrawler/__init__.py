@@ -1,0 +1,1 @@
+from BKSCrawler.crawler import get_timetable
