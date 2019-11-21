@@ -53,6 +53,7 @@ def get_timetable(username = '', password = ''):
                 '_eventId'  :   'submit',
                 'submit'    :   'Login'
             }
+            del sso
 
             # Sending POST request
             cred = s.post(CASURL + form_key['url'], data = form, allow_redirects = False)
@@ -60,6 +61,7 @@ def get_timetable(username = '', password = ''):
                 errors = extr(cred.content, err_temp)
                 errors['http'] = cred.status_code
                 return errors
+                del cred
 
             # Successfully requested
             st1 = s.get(cred.headers['Location'])
@@ -74,16 +76,22 @@ def get_timetable(username = '', password = ''):
                 'X-Requested-With'  :   'XMLHttpRequest'
             }
             s.headers.update(headers_p)
+            del st1
+            del st2
+            del cred
 
             # Get schedule
             pre = s.get(STIURL + PREAJURL)
             table = s.post(STIURL + AJURL, json=token)
+            del pre
 
             # Now end the session
             logout = s.get(CASURL + LogoutURL, allow_redirects = False)
+            del logout
 
             # Return the schedule
             timetable = table.json()
+            del table
             return {
                 'http'  :   0,
                 'code'  :   timetable

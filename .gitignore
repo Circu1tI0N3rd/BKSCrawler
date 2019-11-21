@@ -2,3 +2,4 @@
 /BKSCrawler.egg-info/*
 auto_pack.command
 .DS_Store
+/BKSCrawler/__pycache__/*
