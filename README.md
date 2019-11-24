@@ -1,5 +1,6 @@
 
 # BKSCrawler
+***Dear beta testers!*** A class-oriented version of this library is available on branch "Classalistic"!
 
 ## What is this?
  This is a Python library I wrote based on the following 2 sources:
