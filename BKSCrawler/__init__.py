@@ -1,1 +1,1 @@
-from BKSCrawler.crawler import get_timetable
+from .crawler import StInfoCrawl, CrawlerError
