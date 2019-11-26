@@ -91,27 +91,21 @@ class StInfoCrawl:
         del sso
 
         # Generating form data
-        if self.lock:
-            try:
-                form = {
+        form = {
                     'username'  :   self.usr,
-                    'password'  :   OpenSystemy(self.pwd, bytes.fromhex(phrase)).decode('utf-8'),
                     'lt'        :   form_key['LT'],
                     'execution' :   form_key['Exec'],
                     '_eventId'  :   'submit',
                     'submit'    :   'Login'
                 }
+
+        if self.lock:
+            try:
+                form['password'] = OpenSystemy(self.pwd, bytes.fromhex(phrase)).decode('utf-8')
             except nce.CryptoError as e:
                 return GenRes('NCD_ERR', e.args)
         else:
-            form = {
-                'username'  :   self.usr,
-                'password'  :   self.pwd,
-                'lt'        :   form_key['LT'],
-                'execution' :   form_key['Exec'],
-                '_eventId'  :   'submit',
-                'submit'    :   'Login'
-            }
+            form['password'] = self.pwd
 
         # Sending POST request
         try:
