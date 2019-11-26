@@ -10,39 +10,11 @@ import nacl.secret as ncs
 import nacl.exceptions as nce
 
 # Class required
-from .exceptions import *
+from .exceptions_errors import *
 
 #Pre-defined context:
 # 1 - General Variables
 from .predef_vars import *
-
-# 2 - Error template
-errtypes = {
-        'SUCCESS'   :   'The operation completed successfully',
-        'CAS_200'   :   'The HCMUT SSO returned and error, please check "stack" object for more details',
-        'CASHTTP'   :   'The HCMUT SSO responded weirdly, check "stack" object for details; Less likely possible server error',
-        'TIMEOUT'   :   'A timeout occurred; Possible connection interruption/misconfigured.',
-        'CONNERR'   :   'Error while connecting to host; interruption concerned',
-        'HTTPERR'   :   'Error occurred while establishing connection. Check the connection and retry; If the problem persists, please file an issue along with content of "stack" object.',
-        'EXP_ERR'   :   'Invalid maximum expiration time (must be no more than 30 mins)',
-        'EXPIRED'   :   'The MyBK session has expired. Please do the login again',
-        'ERR_INP'   :   'Recieved no/invalid value(s) when expected. Check "stack" object for what is/are missing/needed',
-        'NCD_ERR'   :   'Error while decrypting password, check if the phrase and/or encrypted password is/are correct, otherwise supply it again or recreate those'
-}
-
-def GenRes(errtype, *stack):
-    resp = dict()
-    resp['code'] = errtype
-    try:
-        resp['desc'] = errtypes[errtype]
-    except:
-        resp['desc'] = 'Please find in "stack" object'
-    if stack:
-        if len(stack) > 1:
-            resp['stack'] = [component for component in stack]
-        else:
-            resp['stack'] = stack[0]
-    return resp
 
 def OpenSystemy(can, phrase):
     return ncs.SecretBox(phrase).decrypt(can)
@@ -50,16 +22,22 @@ def OpenSystemy(can, phrase):
 #   THE FUNCTION
 class StInfoCrawl:
     def __init__(self, username = '', password = '', isEncrypted = False):
-        if username == '' and password == '':
-            raise CrawlerError(GenRes('ERR_INP', {'expected': ['username', 'password']}))
+        if isEncrypted:
+            in_err_res = assert_inerr.format(['username','encrypted password in hex string'])
         else:
-            self.usr = username
-            if isEncrypted:
+            in_err_res = assert_inerr.format(['username','plaintext password string'])
+        assert username, in_err_res
+        assert password, in_err_res
+        self.usr = username
+        if isEncrypted:
+            try:
                 self.pwd = bytes.fromhex(password)
-                self.lock = True
-            else:
-                self.pwd = password
-                self.lock = False
+            except ValueError:
+                raise AssertionError(in_err_res)
+            self.lock = True
+        else:
+            self.pwd = password
+            self.lock = False
 
         # Define extra variables:
         self.loggedin = False
@@ -67,8 +45,8 @@ class StInfoCrawl:
 
     def login(self, phrase = ''):
         # Input check
-        if self.lock and phrase == '':
-            return GenRes('ERR_INP', {'expected': 'phrase_in_hex_string'})
+        if self.lock:
+            assert phrase, assert_inerr.format('unlock phrase in hex string')
 
         # Initialize MyBK session:
         self.ses = requests.Session()
@@ -76,67 +54,54 @@ class StInfoCrawl:
         # Load HCMUT SSO
         try:
             sso = self.ses.get(casLogin)
-        except requests.Timeout as e:
-            # Timeout handling
-            return GenRes('TIMEOUT', e.__dict__)
-        except requests.ConnectionError as e:
-            # Connection error handling
-            return GenRes('CONNERR', e.__dict__)
+        except requests.Timeout:
+            raise TIMEOUT('SSO GET')
+        except requests.ConnectionError:
+            raise HTTPErr('CONNECT', 'SSO', e.__dict__)
         except requests.RequestException as e:
-            # Other requests error handling
-            raise CrawlerError(GenRes('HTTPERR', {'where': 'CAS_GET'}, e.__dict__))
+            raise HTTPErr('_FORMAT', 'SSO GET', e.__dict__)
 
         # Getting login session id
         form_key = extr(sso.content, ftk_temp)
         del sso
 
         # Generating form data
-        form = {
-                    'username'  :   self.usr,
-                    'lt'        :   form_key['LT'],
-                    'execution' :   form_key['Exec'],
-                    '_eventId'  :   'submit',
-                    'submit'    :   'Login'
-                }
-
+        form = form_sample
+        form['username'] = self.usr
+        form['lt'] = form_key['LT']
+        form['execution'] = form_key['Exec']
         if self.lock:
             try:
                 form['password'] = OpenSystemy(self.pwd, bytes.fromhex(phrase)).decode('utf-8')
             except nce.CryptoError as e:
-                return GenRes('NCD_ERR', e.args)
+                raise DecryptFail
         else:
             form['password'] = self.pwd
 
         # Sending POST request
         try:
             cred = self.ses.post(casLogin, data = form, allow_redirects = False)
-        except requests.Timeout as e:
-            # Timeout handling
-            return GenRes('TIMEOUT', e.__dict__)
-        except requests.ConnectionError as e:
-            # Connection error handling
-            return GenRes('CONNERR', e.__dict__)
+        except requests.Timeout:
+            raise TIMEOUT('SSO POST')
+        except requests.ConnectionError:
+            raise HTTPErr('CONNECT', 'SSO', e.__dict__)
         except requests.RequestException as e:
-            # Other requests error handling
-            raise CrawlerError(GenRes('HTTPERR', {'where': 'CAS_POST'}, e.__dict__))
+            raise HTTPErr('_FORMAT', 'SSO POST', e.__dict__)
 
         # Error handling for response
         if cred.status_code == 200:
             errors = extr(cred.content, err_temp)
-            if errors['trace'] != None:
-                errors['http'] = cred.status_code
-                del cred
-                return GenRes('CAS_200', errors)
-            else:
+            try:
+                assert errors['trace']
+            except AssertionError:
                 del errors
+                pass
+            else:
+                raise HTTPErr('CAS_200', errors['trace'])
         elif cred.status_code == 302:
             pass
         else:
-            raise CrawlerError(GenRes('CASHTTP', {
-                    'http': cred.status_code,
-                    'trace': cred.reason
-                }))
-            del cred
+            raise HTTPErr('HTTP_NO', 'SSO', [cred.status_code, 'login'])
 
         # Done the cookies, to the portal!
         try:
@@ -144,34 +109,28 @@ class StInfoCrawl:
             # Do another one
             st = self.ses.get(stif['lnk'])
             del st_temp
-        except requests.Timeout as e:
-            # Timeout handling
-            return GenRes('TIMEOUT', e.__dict__)
-        except requests.ConnectionError as e:
-            # Connection error handling
-            return GenRes('CONNERR', e.__dict__)
+        except requests.Timeout:
+            raise TIMEOUT('MyBK StInfo')
+        except requests.ConnectionError:
+            raise HTTPErr('CONNECT', 'MyBK StInfo', e.__dict__)
         except requests.RequestException as e:
-            # Other requests error handling
-            raise CrawlerError(GenRes('HTTPERR', {'where': 'CAS_POST'}, e.__dict__))
+            raise HTTPErr('_FORMAT', 'MyBK StInfo', e.__dict__)
 
         # Get STInfo Token
         self.token = extr(st.content, tok_temp)
 
         # Check if the token exists:
-        if self.token['_token'] == None:
-            self.logout()
-            raise CrawlerError('NO TOKEN!')
+        try:
+            assert self.token['_token']
+        except AssertionError:
+            raise HTTPErr('NOTOKEN')
 
         # Update the headers
-        headers_p = {
-            'X-CSRF-TOKEN'  :   self.token['_token'],
-            'X-Requested-With'  :   'XMLHttpRequest'
-        }
+        headers_p = headers_add_template
+        headers_p['X-CSRF-TOKEN'] = self.token['_token']
         self.ses.headers.update(headers_p)
         self.loggedin = True
         self.time = time.time()
-        # Set time here
-        return GenRes('SUCCESS')
 
     def isValidExpire(self, *value):
         if value:
@@ -187,7 +146,7 @@ class StInfoCrawl:
 
     def setExpire(self, max_time = 30, unit = 'min'):
         if not unit in ('sec', 'min'):
-            raise CrawlerError(GenRes('EXP_ERR'))
+            raise AssertionError(assert_inerr.format(['max_time','unit in min/sec']))
         multiplier = {
             'sec'   :   1,
             'min'   :   60,
@@ -196,7 +155,7 @@ class StInfoCrawl:
         if self.isValidExpire(timeout):
             self.exptime = timeout
         else:
-            raise CrawlerError(GenRes('EXP_ERR'))
+            raise ExpireErr('invd')
 
     def cleanup(self):
         try:
@@ -205,6 +164,7 @@ class StInfoCrawl:
             del self.token
         except:
             pass
+        self.loggedin = False
 
     def logout(self, verbose = False):
         '''
@@ -215,50 +175,69 @@ class StInfoCrawl:
         '''
         try:
             out = self.ses.get(casLogout)
-        except requests.Timeout as e:
+        except requests.Timeout:
             # Timeout handling
             self.cleanup()
             if verbose:
-                return GenRes('TIMEOUT', e.__dict__)
+                raise TIMEOUT('SSO LOGOUT')
             else:
                 pass
         except requests.ConnectionError as e:
             # Connection error handling
             self.cleanup()
             if verbose:
-                return GenRes('CONNERR', e.__dict__)
+                raise HTTPErr('CONNECT', 'SSO LOGOUT', e.__dict__)
             else:
                 pass
         except requests.RequestException as e:
             # Other requests error handling
             self.cleanup()
             if verbose:
-                return GenRes('HTTPERR', {'where': 'CAS_LOGOUT_VONLY'}, e.__dict__)
+                raise HTTPErr('_FORMAT', 'SSO LOGOUT', e.__dict__)
             else:
                 pass
         else:
-            succ = extr(out.content, succ_temp)
-            if succ['trace'] == None:
+            if out.status_code == 200:
+                succ = extr(out.content, succ_temp)
+                try:
+                    assert succ['trace']
+                except AssertionError:
+                    self.cleanup()
+                    if verbose:
+                        raise HTTPErr('_LOGOUT')
+                else:
+                    del succ
+                    del out
+                    self.cleanup()
+            else:
                 self.cleanup()
                 if verbose:
-                    return GenRes('LOGOUT_FAILED', 'Server not returned any success identification, or I have not implemented it yet.')
-            else:
-                del succ
-                del out
-                self.cleanup()
+                    raise HTTPErr('HTTP_NO', 'SSO', [out.status_code, 'logout (verbose)'])
 
         # Make sure it actually cleaned and finish gracefully
-        try:
-            del self.time
-            del self.ses
-        except:
-            pass
-        return GenRes('SUCCESS')
+        self.cleanup()
 
     def fetch(self, cmd = ''):
+        # Check if logged out:
+        try:
+            assert self.loggedin
+        except AssertionError:
+            raise ExpireErr('expr')
+
+        # Check if the cookies expired:
+        period = int(time.time()-self.time)
+        if period > self.exptime:
+            self.logout()
+            raise ExpireErr('expr')
+
+        # Expiry time validity check:
+        if not self.isValidExpire():
+            self.logout()
+            self.exptime = 1800
+            raise ExpireErr('both')
+
         # Check if cmd is empty
-        if cmd == '':
-            raise CrawlerError(GenRes('ERR_INP', {'expected': ['sched','exam','grade','msg']}))
+        assert cmd, assert_inerr.format('"cmd" with sched/exam/grade/msg')
 
         # Get the neccessary links to the mem space
         try:
@@ -266,20 +245,7 @@ class StInfoCrawl:
             spost = stif['lnk'] + stif['opns'][cmd][1]
         except:
             # cmd is invalid
-            raise CrawlerError(GenRes('ERR_INP', {'expected': ['sched','exam','grade','msg']}))
-
-        # Expiry time validity check:
-        if not self.isValidExpire():
-            temp = logout()
-            del temp
-            raise CrawlerError(GenRes('EXPIRED'))
-
-        # Check if the cookies expired:
-        period = int(time.time()-self.time)
-        if period > self.exptime:
-            temp = logout()
-            del temp
-            raise CrawlerError(GenRes('EXPIRED'))
+            raise AssertionError(assert_inerr.format('"cmd" with sched/exam/grade/msg'))
 
         # No error found, get user need
         try:
@@ -288,20 +254,19 @@ class StInfoCrawl:
             del pre
             del sget
             del spost
-        except requests.Timeout as e:
-            # Timeout handling
-            return GenRes('TIMEOUT', e.__dict__)
-        except requests.ConnectionError as e:
-            # Connection error handling
-            return GenRes('CONNERR', e.__dict__)
+        except requests.Timeout:
+            raise TIMEOUT('MyBK StInfo ' + cmd)
+        except requests.ConnectionError:
+            raise HTTPErr('CONNECT', 'MyBK StInfo ' + cmd, e.__dict__)
         except requests.RequestException as e:
-            # Other requests error handling
-            raise CrawlerError(GenRes('HTTPERR', {'where': 'CAS_POST'}, e.__dict__))
+            raise HTTPErr('_FORMAT', 'MyBK StInfo ' + cmd, e.__dict__)
 
         # Return the JSON
         try:
             return table.json()
         except Exception as e:
-            # If cannot return the dict, throw an error
-            raise CrawlerError(GenRes('HTTPERR', e.args))
+            if table.status_code!=200:
+                raise HTTPErr('HTTP_NO', 'MyBK StInfo', [table.status_code, 'get ' + cmd])
+            else:
+                raise RareCrawlerErr('fetch_method_return', e.args)
         del table

@@ -33,3 +33,17 @@ succ_temp = {
 tok_temp = {
     '_token':  ['meta[name=_token]', 'content', []]
 }
+
+# Requests templates
+form_sample = {
+    'username'  :   '',
+    'password'  :   '',
+    'lt'        :   '',
+    'execution' :   '',
+    '_eventId'  :   'submit',
+    'submit'    :   'Login'
+}
+headers_add_template = {
+    'X-CSRF-TOKEN'  :   '',
+    'X-Requested-With'  :   'XMLHttpRequest'
+}
