@@ -1,1 +1,4 @@
-from .crawler import StInfoCrawl, CrawlerError
+# Main class
+from .crawler import StInfoCrawl
+# Exception class
+from .exceptions import *

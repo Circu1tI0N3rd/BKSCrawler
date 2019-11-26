@@ -1,5 +1,6 @@
 
 # BKSCrawler
+Please note there are some missing information in this README. I am deeply apologize about such manner.
 
 ## What is this?
  This is a Python library I wrote based on the following 2 sources:
@@ -31,7 +32,7 @@ Assuming you are in Python 3.7 shell and already install all requirements:
 
     >>> import BKSCrawler as bk
     >>> mybk = bk.StInfoCrawl(<Your username here>, <Your NaCl-encrypted password here>)
-    >>> mybk.login(<Your NaCl encryption phrase here>)
+    >>> mybk.login([Your NaCl encryption phrase here])
     [A JSON OUTPUT]
 
 - Get your information (say, timetable) from HCMUT StInfo Portal:

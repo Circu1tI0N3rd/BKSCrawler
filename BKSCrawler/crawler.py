@@ -7,23 +7,15 @@ import time
 from html2json import collect as extr
 import requests
 import nacl.secret as ncs
+import nacl.exceptions as nce
+
+# Class required
+from .exceptions import *
 
 #Pre-defined context:
-# 1 - Extraction template
-ftk_temp = {
-    'url'   :   ['#fm1', 'action', []],
-    'LT'    :   ['input[name=lt]', 'value', []],
-    'Exec'  :   ['input[name=execution]', 'value', []]
-}
-err_temp = {
-    'trace'  :   ['.errors', None, []]
-}
-succ_temp = {
-    'trace'  :   ['.success', None, []]
-}
-tok_temp = {
-    '_token':  ['meta[name=_token]', 'content', []]
-}
+# 1 - General Variables
+from .predef_vars import *
+
 # 2 - Error template
 errtypes = {
         'SUCCESS'   :   'The operation completed successfully',
@@ -34,21 +26,9 @@ errtypes = {
         'HTTPERR'   :   'Error occurred while establishing connection. Check the connection and retry; If the problem persists, please file an issue along with content of "stack" object.',
         'EXP_ERR'   :   'Invalid maximum expiration time (must be no more than 30 mins)',
         'EXPIRED'   :   'The MyBK session has expired. Please do the login again',
-        'ERR_INP'   :   'Recieved no/invalid value(s) when expected. Check "stack" object for what is/are missing/needed'
+        'ERR_INP'   :   'Recieved no/invalid value(s) when expected. Check "stack" object for what is/are missing/needed',
+        'NCD_ERR'   :   'Error while decrypting password, check if the phrase and/or encrypted password is/are correct, otherwise supply it again or recreate those'
 }
-# 3 - Commands
-stif = {
-    'lnk'   :   'https://mybk.hcmut.edu.vn/stinfo',
-    'opns'  :   {
-        'sched' :   ['/lichhoc', '/lichthi/ajax_lichhoc'],
-        'exam'  :   ['/lichthi', '/lichthi/ajax_lichthi'],
-        'grade' :   ['/grade', '/grade/ajax_grade'],
-        'msg'   :   ['/message', '/message/data']
-    }
-}
-# 4 - Links
-casLogin = 'https://sso.hcmut.edu.vn/cas/login?service=http://mybk.hcmut.edu.vn/stinfo/'
-casLogout = 'https://sso.hcmut.edu.vn/cas/logout'
 
 def GenRes(errtype, *stack):
     resp = dict()
@@ -69,12 +49,17 @@ def OpenSystemy(can, phrase):
 
 #   THE FUNCTION
 class StInfoCrawl:
-    def __init__(self, username = '', encrypted_pass = ''):
+    def __init__(self, username = '', password = '', isEncrypted = False):
         if username == '' and password == '':
             raise CrawlerError(GenRes('ERR_INP', {'expected': ['username', 'password']}))
         else:
             self.usr = username
-            self.pwd = bytes.fromhex(encrypted_pass)
+            if isEncrypted:
+                self.pwd = bytes.fromhex(password)
+                self.lock = True
+            else:
+                self.pwd = password
+                self.lock = False
 
         # Define extra variables:
         self.loggedin = False
@@ -82,7 +67,7 @@ class StInfoCrawl:
 
     def login(self, phrase = ''):
         # Input check
-        if phrase == '':
+        if self.lock and phrase == '':
             return GenRes('ERR_INP', {'expected': 'phrase_in_hex_string'})
 
         # Initialize MyBK session:
@@ -106,14 +91,27 @@ class StInfoCrawl:
         del sso
 
         # Generating form data
-        form = {
-            'username'  :   self.usr,
-            'password'  :   OpenSystemy(self.pwd, bytes.fromhex(phrase)).decode('utf-8'),
-            'lt'        :   form_key['LT'],
-            'execution' :   form_key['Exec'],
-            '_eventId'  :   'submit',
-            'submit'    :   'Login'
-        }
+        if self.lock:
+            try:
+                form = {
+                    'username'  :   self.usr,
+                    'password'  :   OpenSystemy(self.pwd, bytes.fromhex(phrase)).decode('utf-8'),
+                    'lt'        :   form_key['LT'],
+                    'execution' :   form_key['Exec'],
+                    '_eventId'  :   'submit',
+                    'submit'    :   'Login'
+                }
+            except nce.CryptoError as e:
+                return GenRes('NCD_ERR', e.args)
+        else:
+            form = {
+                'username'  :   self.usr,
+                'password'  :   self.pwd,
+                'lt'        :   form_key['LT'],
+                'execution' :   form_key['Exec'],
+                '_eventId'  :   'submit',
+                'submit'    :   'Login'
+            }
 
         # Sending POST request
         try:
@@ -313,9 +311,3 @@ class StInfoCrawl:
             # If cannot return the dict, throw an error
             raise CrawlerError(GenRes('HTTPERR', e.args))
         del table
-
-class CrawlerError(Exception):
-    def __init__(self, args, nil=None):
-        self.args = args
-        self.Reduced = nil
-        super(CrawlerError, self).__init__(args)
