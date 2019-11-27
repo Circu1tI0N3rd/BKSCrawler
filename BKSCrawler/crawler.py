@@ -239,15 +239,15 @@ class StInfoCrawl:
         # Check if cmd is empty
         assert cmd, assert_inerr.format('"cmd" with sched/exam/grade/msg')
 
-        # Get the neccessary links to the mem space
-        try:
-            sget = stif['lnk'] + stif['opns'][cmd][0]
-            spost = stif['lnk'] + stif['opns'][cmd][1]
-        except:
-            # cmd is invalid
+        # Check if cmd is valid
+        if not cmd in stif['opns']:
             raise AssertionError(assert_inerr.format('"cmd" with sched/exam/grade/msg'))
 
-        # No error found, get user need
+        # Get the neccessary links to the mem space
+        sget = stif['lnk'] + stif['opns'][cmd][0]
+        spost = stif['lnk'] + stif['opns'][cmd][1]
+
+        # Get user need
         try:
             pre = self.ses.get(sget)
             table = self.ses.post(spost, json=self.token)
