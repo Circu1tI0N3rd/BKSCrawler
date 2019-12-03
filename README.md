@@ -1,3 +1,5 @@
+
+
 # BKSCrawler
 
 Please note there are some missing information in this README. I am deeply apologize about such manner.
@@ -32,11 +34,11 @@ Assuming you are in Python 3.7 shell and already install all requirements:
 
       import BKSCrawler as bk
       mybk = bk.StInfoCrawl(<Your username here>, <Your NaCl-encrypted password here>)
-      mybk.login([Your NaCl encryption phrase here])
+    mybk.login([Your NaCl encryption phrase here])
 
 - Get your information (say, timetable) from HCMUT StInfo Portal:
 
-    mybk.fetch('sched')
+      mybk.fetch('sched')
 
   Return: A Python dictionary type
 
@@ -48,17 +50,17 @@ Assuming you are in Python 3.7 shell and already install all requirements:
 
 - Get current week:
 
-    mybk.week
+      mybk.week
 
   Return: (integer) this week number
 
 - Log out of the portal:
 
-    mybk.logout()
+      mybk.logout()
 
 - Change expiry time of the session: 
 
-    mybk.setExpire(<time_in_int>, <Format: min|sec>)
+      mybk.setExpire(<time_in_int>, <Format: min|sec>)
 
   ***NOTE:*** The maximum allowed period is ***30 minutes***
 
@@ -69,8 +71,11 @@ The function will throw `BKSCrawler.CrawlerError` for most errors (specific exce
 
 ## License
 This library uses [GNU General Public License v3.0](https://github.com/Circu1tI0N3rd/BKSCrawler/blob/Classalistic/LICENSE)
+
 [_html2json_](http://pypi.org/project/html2json/) uses [MIT License](https://github.com/chuanconggao/html2json/blob/master/LICENSE)
+
 [_requests_](https://pypi.org/project/requests/) uses [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0)
+
 [_pyNaCl_](http://pypi.org/project/pynacl) uses [Apache 2.0 License](https://github.com/pyca/pynacl/blob/master/LICENSE)
 
 ## Future
