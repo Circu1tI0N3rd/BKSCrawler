@@ -5,5 +5,4 @@ auto_pack.command
 /BKSCrawler/__pycache__/*
 tester.py
 /references/*
-README_VIE.md
-/BKSCrawler/vars_en.py
+/build/*
