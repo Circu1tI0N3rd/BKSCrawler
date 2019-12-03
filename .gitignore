@@ -4,3 +4,4 @@ auto_pack.command
 .DS_Store
 /BKSCrawler/__pycache__/*
 tester.py
+/references/*

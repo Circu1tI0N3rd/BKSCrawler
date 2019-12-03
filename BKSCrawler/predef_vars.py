@@ -33,7 +33,6 @@ succ_temp = {
 tok_temp = {
     '_token':  ['meta[name=_token]', 'content', []]
 }
-
 # Requests templates
 form_sample = {
     'username'  :   '',

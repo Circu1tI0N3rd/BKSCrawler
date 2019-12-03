@@ -2,6 +2,7 @@
 import os
 import json
 import time
+import datetime
 
 # 3rd-Party
 from html2json import collect as extr
@@ -42,6 +43,15 @@ class StInfoCrawl:
         # Define extra variables:
         self.loggedin = False
         self.exptime = 1800
+
+        # Get current week
+        today = datetime.datetime.now().date().isocalendar()
+        if today[2] == 7:
+            # Week end, had to correct the week for this timetable
+            self.week = today[1] - 1
+        else:
+            self.week = today[1]
+        del today
 
     def login(self, phrase = ''):
         # Input check
