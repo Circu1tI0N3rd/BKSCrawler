@@ -35,7 +35,9 @@ Assuming you are in Python 3.7 shell and already install all requirements:
     > mybk.login([Your NaCl encryption phrase here])
 
 - Get your information (say, timetable) from HCMUT StInfo Portal: `mybk.fetch('sched')`
+
 Return: A Python dictionary type
+
 _Valid commands are:_
   'sched': Get timetable;
   'grade': Get exam gradings;
@@ -43,11 +45,13 @@ _Valid commands are:_
   'msg': Get annoucements available.
 
 - Get current week: `mybk.week`
+
 Return: (integer) this week number
 
 - Log out of the portal: `mybk.logout()`
 
 - Change expiry time of the session: `mybk.setExpire(<time_in_int>, <Format: min|sec>)`
+
 ***NOTE:*** The maximum allowed period is ***30 minutes***
 
 ## Exceptions
