@@ -33,7 +33,6 @@ Assuming you are in Python 3.7 shell and already install all requirements:
     >>> import BKSCrawler as bk
     >>> mybk = bk.StInfoCrawl(<Your username here>, <Your NaCl-encrypted password here>)
     >>> mybk.login([Your NaCl encryption phrase here])
-    [A JSON OUTPUT]
 
 - Get your information (say, timetable) from HCMUT StInfo Portal:
 
@@ -41,55 +40,37 @@ Assuming you are in Python 3.7 shell and already install all requirements:
     [A JSON OUTPUT]
 
 _Valid commands are:_
-- 'sched': Get timetable;
-- 'grade': Get exam gradings;
-- 'exam': Get exam schedule;
-- 'msg': Get annoucements available.
+  'sched': Get timetable;
+  'grade': Get exam gradings;
+  'exam': Get exam schedule;
+  'msg': Get annoucements available.
+
+- Get current week:
+
+    >>> mybk.week
+    [The week number]
 
 - Log out of the portal:
 
     >>> mybk.logout()
-    [A 'SUCCESS' JSON RESPONSE]
 
 - Change expiry time of the session:
 
     >>> mybk.setExpire(<time_in_int>, <Format: min|sec>)
-    [NO OUTPUT]
 
 ***NOTE:*** The maximum allowed period is ***30 minutes***
 
 ## Exceptions
-The function will throw `BKSCrawler.CrawlerError` during the crawling process for the following commands:
-- On initialization of the session: Missing inputs;
-- `login`: For specific errors that needs attention;
-- `setExpire`: Invalid period;
-- `fetch`: Any errors.
+The function will throw `BKSCrawler.CrawlerError` for most errors (specific exceptions do exist) during the crawling process for most commands.
 
-***_Format:_*** _JSON_(at _`BKSCrawler.CrawlerError.args`_)
-
-    {
-      'code'  : <Error_code>,
-      'desc'  : <Brief_details_about_the_error>,
-      'trace' : <Detailed_output>
-    }
-
-Whereas the error can be:
-- 'CAS_200'   :   'The HCMUT SSO returned and error, please check "stack" object for more details',
-- 'CASHTTP'   :   'The HCMUT SSO responded weirdly, check "stack" object for details; Less likely possible server error',
-- 'TIMEOUT'   :   'A timeout occurred; Possible connection interruption/misconfigured.',
-- 'CONNERR'   :   'Error while connecting to host; interruption concerned',
-- 'HTTPERR'   :   'Error occurred while establishing connection. Check the connection and retry; If the problem persists, please file an issue along with content of "stack" object.',
-- 'EXP_ERR'   :   'Invalid maximum expiration time (must be no more than 30 mins)',
-- 'EXPIRED'   :   'The MyBK session has expired. Please do the login again',
-- 'ERR_INP'   :   'Recieved no/invalid value(s) when expected. Check "stack" object for what is/are missing/needed'
-
-These error codes can also be returned via the funtions (specifically: `login`, `logout`).
+***ADDITIONALLY***, for any value errors (missing/invalid command arguments), `AssertionError` is raised.
 
 ## License
 This library has a GNU GPLv3 license
 
 ## Future
-- Complete the documentation for this library
+- Expand Exceptions
+- Update other language
 
 ## FAQ
 -	**Q:** **_Can I use non-HCMUT account with this library?_**
