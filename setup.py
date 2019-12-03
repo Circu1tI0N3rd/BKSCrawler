@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 setup(name = 'BKSCrawler',
-	version = 0.1,
+	version = float(open('VERSION').read()),
 	url = 'https://github.com/Circu1tI0N3rd/BKSCrawler',
 	license = 'GPLv3',
 	author = 'Maurice Klivoslov',
