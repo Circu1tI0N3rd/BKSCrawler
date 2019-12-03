@@ -34,7 +34,7 @@ Assuming you are in Python 3.7 shell and already install all requirements:
 
       import BKSCrawler as bk
       mybk = bk.StInfoCrawl(<Your username here>, <Your NaCl-encrypted password here>)
-    mybk.login([Your NaCl encryption phrase here])
+      mybk.login([Your NaCl encryption phrase here])
 
 - Get your information (say, timetable) from HCMUT StInfo Portal:
 
