@@ -1,6 +1,7 @@
 
 
 # BKSCrawler
+***Dear beta testers!*** A class-oriented version of this library is available on branch "Classalistic"!
 
 Please note there are some missing information in this README. I am deeply apologize about such manner.
 
