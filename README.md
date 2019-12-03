@@ -30,34 +30,24 @@ Assuming you are in Python 3.7 shell and already install all requirements:
 ### Usage:
 - Initalize:
 
-    >>> import BKSCrawler as bk
-    >>> mybk = bk.StInfoCrawl(<Your username here>, <Your NaCl-encrypted password here>)
-    >>> mybk.login([Your NaCl encryption phrase here])
+    > import BKSCrawler as bk
+    > mybk = bk.StInfoCrawl(<Your username here>, <Your NaCl-encrypted password here>)
+    > mybk.login([Your NaCl encryption phrase here])
 
-- Get your information (say, timetable) from HCMUT StInfo Portal:
-
-    >>> mybk.fetch('sched')
-    [A JSON OUTPUT]
-
+- Get your information (say, timetable) from HCMUT StInfo Portal: `mybk.fetch('sched')`
+Return: A Python dictionary type
 _Valid commands are:_
   'sched': Get timetable;
   'grade': Get exam gradings;
   'exam': Get exam schedule;
   'msg': Get annoucements available.
 
-- Get current week:
+- Get current week: `mybk.week`
+Return: (integer) this week number
 
-    >>> mybk.week
-    [The week number]
+- Log out of the portal: `mybk.logout()`
 
-- Log out of the portal:
-
-    >>> mybk.logout()
-
-- Change expiry time of the session:
-
-    >>> mybk.setExpire(<time_in_int>, <Format: min|sec>)
-
+- Change expiry time of the session: `mybk.setExpire(<time_in_int>, <Format: min|sec>)`
 ***NOTE:*** The maximum allowed period is ***30 minutes***
 
 ## Exceptions
