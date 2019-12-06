@@ -88,7 +88,7 @@ class StInfoCrawl:
             sso = self.ses.get(casLogin)
         except requests.Timeout:
             raise TIMEOUT('SSO GET')
-        except requests.ConnectionError:
+        except requests.ConnectionError as e:
             raise HTTPErr('CONNECT', 'SSO', e.__dict__)
         except requests.RequestException as e:
             raise HTTPErr('_FORMAT', 'SSO GET', e.__dict__)
@@ -115,7 +115,7 @@ class StInfoCrawl:
             cred = self.ses.post(casLogin, data = form, allow_redirects = False)
         except requests.Timeout:
             raise TIMEOUT('SSO POST')
-        except requests.ConnectionError:
+        except requests.ConnectionError as e:
             raise HTTPErr('CONNECT', 'SSO', e.__dict__)
         except requests.RequestException as e:
             raise HTTPErr('_FORMAT', 'SSO POST', e.__dict__)
@@ -143,7 +143,7 @@ class StInfoCrawl:
             del st_temp
         except requests.Timeout:
             raise TIMEOUT('MyBK StInfo')
-        except requests.ConnectionError:
+        except requests.ConnectionError as e:
             raise HTTPErr('CONNECT', 'MyBK StInfo', e.__dict__)
         except requests.RequestException as e:
             raise HTTPErr('_FORMAT', 'MyBK StInfo', e.__dict__)
@@ -288,7 +288,7 @@ class StInfoCrawl:
             del spost
         except requests.Timeout:
             raise TIMEOUT('MyBK StInfo ' + cmd)
-        except requests.ConnectionError:
+        except requests.ConnectionError as e:
             raise HTTPErr('CONNECT', 'MyBK StInfo ' + cmd, e.__dict__)
         except requests.RequestException as e:
             raise HTTPErr('_FORMAT', 'MyBK StInfo ' + cmd, e.__dict__)
