@@ -50,11 +50,11 @@ class TIMEOUT(CrawlerError):
 
 class ExpireErr(CrawlerError):
 	def __init__(self, what):
-		super().__init__(expr_types[what])
+		super().__init__((expr_types[what], what))
 
 class HTTPErr(CrawlerError):
 	def __init__(self, what, where='', how=''):
-		super().__init__(http_err_types[what].format(where, how))
+		super().__init__((http_err_types[what].format(where, how), what))
 
 class DecryptFail(CrawlerError):
 	def __init__(self):
