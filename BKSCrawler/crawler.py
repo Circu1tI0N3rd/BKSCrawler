@@ -67,13 +67,14 @@ class StInfoCrawl:
         self.exptime = 1800
 
         # Get current week
-        today = datetime.datetime.now().date().isocalendar()
-        if today[2] == 7:
-            # Week end, had to correct the week for this timetable
-            self.week = today[1] - 1
-        else:
-            self.week = today[1]
-        del today
+        today = datetime.datetime.now().date()
+        todayiso = today.isocalendar()
+        self.today = {
+            'date'  :   str(today.day)+'/'+str(today.month)+'/'+str(today.year),
+            'week'  :   todayiso[1],
+            'dow'   :   todayiso[2]
+        }
+        del today, todayiso
 
     def login(self, phrase = ''):
         # Input check
